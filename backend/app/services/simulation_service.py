@@ -79,14 +79,28 @@ def run_simulation(simulation_id: str, timesteps: int, disruptions: dict = None,
             logger.info(f"[Timestep 0] node_failure injected at {tgt} with ML propagation")
 
     for ed in edge_disruptions:
-        tgt_str = ed.get("edge_id")
-        # Ensure we can parse "Source->Target" or use standard NetworkX keys
-        if "->" in tgt_str:
-            u, v = tgt_str.split("->")
+        tgt_id = ed.get("edge_id")
+        found = False
+        
+        # Check by edge ID directly
+        for u, v, key, data in G.edges(keys=True, data=True):
+            if data.get("edge_id") == tgt_id or key == tgt_id:
+                increase = ed.get("congestion_increase", 0.5)
+                G.edges[u, v]["congestion"] = G.edges[u, v].get("congestion", 0.0) + increase
+                # Congestion on an edge increases risk for the DESTINATION node
+                G.nodes[v]["risk_score"] = min(1.0, G.nodes[v].get("risk_score", 0.0) + (increase * 0.3))
+                logger.info(f"[Timestep 0] edge_disruption injected at {u}->{v} (ID: {tgt_id})")
+                found = True
+                break
+        
+        # Fallback to Source->Target parsing
+        if not found and "->" in str(tgt_id):
+            u, v = str(tgt_id).split("->")
             if G.has_edge(u, v):
-                # Edge disruption: increase congestion
-                G.edges[u, v]["congestion"] = G.edges[u, v].get("congestion", 0.0) + ed.get("congestion_increase", 0.5)
-                logger.info(f"[Timestep 0] edge_disruption injected at {u}->{v}")
+                increase = ed.get("congestion_increase", 0.5)
+                G.edges[u, v]["congestion"] = G.edges[u, v].get("congestion", 0.0) + increase
+                G.nodes[v]["risk_score"] = min(1.0, G.nodes[v].get("risk_score", 0.0) + (increase * 0.3))
+                logger.info(f"[Timestep 0] edge_disruption (fallback) injected at {u}->{v}")
 
     for cr in capacity_reductions:
         tgt = cr.get("node_id")
@@ -208,7 +222,8 @@ def run_simulation(simulation_id: str, timesteps: int, disruptions: dict = None,
             "risk_index": risk_index,
             "decision_mode": decision_mode,
             "node_metrics": node_metrics,
-            "ai_actions": action_history,
+            # Only send the most recent 100 logs to the UI to maintain high performance
+            "ai_actions": action_history[-100:] if action_history else [],
             "updated_at": datetime.now(timezone.utc).isoformat()
         }))
         

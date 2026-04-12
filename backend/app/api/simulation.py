@@ -14,6 +14,8 @@ from app.db.redis import get_redis_client
 
 from app.services.simulation_service import run_simulation
 
+router = APIRouter()
+
 @router.post("/simulate", response_model=dict, status_code=status.HTTP_202_ACCEPTED)
 async def start_simulation(params: SimulationParams, redis_client: redis.Redis = Depends(get_redis_client)):
     """Starts a simulation. (Now running synchronously for development sync)"""

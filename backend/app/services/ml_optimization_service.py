@@ -19,8 +19,8 @@ def get_state(inventory: float, risk: float, capacity: float) -> Tuple[int, int]
 
 def compute_optimal_actions(G: nx.DiGraph) -> List[Dict[str, Any]]:
     """
-    Refined RL Policy Engine.
-    Ensures unique, progressive logging to prevent UI freezing.
+    Refined RL Policy Engine with High Verbosity.
+    Ensures every node generates a log entry for UI observability.
     """
     actions = []
     warehouse_nodes = [n for n in G.nodes() if G.nodes[n].get("label") == "Warehouse"]
@@ -32,7 +32,7 @@ def compute_optimal_actions(G: nx.DiGraph) -> List[Dict[str, Any]]:
 
         # 1. Special Handling for Suppliers
         if label == "Supplier":
-            actions.append({"type": "log", "log": f"[Alpha-Mode] Supplier {name}: Operational"})
+            actions.append({"type": "log", "log": f"Supplier {name} | Upstream source - nominal flow"})
             continue
 
         # 2. RL Evaluation
@@ -41,41 +41,54 @@ def compute_optimal_actions(G: nx.DiGraph) -> List[Dict[str, Any]]:
         q_vals = Q_TABLE.get(state, [2.0, 0.0, 0.0]) # Default: STABLE
         choice = ACTIONS[np.argmax(q_vals)]
 
-        # 3. Decision Branch with Improved Logging
+        # 3. Decision Branch
         if choice == "REBALANCE":
             # Search for surplus donor
             best_wh = next((wh for wh in warehouse_nodes if G.nodes[wh].get("inventory", 0) > 50 and wh != n_id), None)
             if best_wh:
-                logger.info(f"RL DECISION: Rescuing {name} from {best_wh}")
                 actions.append({
                     "type": "rebalance_inventory",
-                    "from_node": best_wh, "to_node": n_id, "amount": 25.0,
-                    "log": f"AI POLICY: Moving stock to {name} from {best_wh}"
+                    "from_node": best_wh, 
+                    "to_node": n_id, 
+                    "amount": 25.0,
+                    "log": f"{label} {name} | CRITICAL - Rescuing with stock from {best_wh}"
                 })
-                G.nodes[best_wh]["inventory"] -= 25.0 # Local update to prevent over-allocation
+                # Local update to prevent over-allocation in same tick
+                G.nodes[best_wh]["inventory"] -= 25.0 
+            else:
+                actions.append({
+                    "type": "log", 
+                    "log": f"{label} {name} | WARNING - Critical inventory, no donors available"
+                })
 
         elif choice == "REROUTE":
-            # Find the MOST congested inbound edge to fix
+            # Find the most congested inbound edge
             target_edge = None
-            max_c = 0
+            max_c = -1
             for u, v in G.in_edges(n_id):
                 c = G.edges[u, v].get("congestion", 0)
                 if c > max_c:
                     max_c = c
-                    target_edge = (u, v)
+                    target_edge = (u,v)
             
             if target_edge:
                 actions.append({
                     "type": "reduce_congestion",
                     "edge": target_edge,
                     "amount": 0.2,
-                    "log": f"AI POLICY: Rerouting traffic for {name} on edge {target_edge[0]}->{target_edge[1]}"
+                    "log": f"{label} {name} | CONGESTION - Rerouting traffic for local link"
+                })
+            else:
+                actions.append({
+                    "type": "log", 
+                    "log": f"{label} {name} | ALERT - High risk, monitoring structure"
                 })
         
-        elif risk > 0.4: # Only log 'STABLE' if there's some baseline risk but it's okay
+        else:
+            # NOMINAL STATE (Action: DO NOTHING)
             actions.append({
                 "type": "log",
-                "log": f"AI STATUS: {name} monitor status - NOMINAL"
+                "log": f"{label} {name} | NOMINAL - State optimized"
             })
 
     return actions
