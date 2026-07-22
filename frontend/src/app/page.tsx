@@ -36,26 +36,26 @@ export default function Home() {
       {/* HUD Layer Overlay */}
       <div className="absolute top-0 left-0 w-full p-6 z-10 pointer-events-none flex justify-between items-start">
         <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold tracking-tight">Supply Chain Digital Twin</h1>
-          <p className="text-xs text-white/50 font-mono uppercase tracking-widest">Global Network Overview</p>
+          <h1 className={cn("text-xl font-semibold tracking-tight", viewMode === 'map' ? "text-black" : "")}>Supply Chain Digital Twin</h1>
+          <p className={cn("text-xs font-mono uppercase tracking-widest", viewMode === 'map' ? "text-black/60" : "text-white/50")}>Global Network Overview</p>
         </div>
         
         {/* Status Indicators */}
-        <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-full pointer-events-auto shadow-2xl">
+        <div className={cn("flex items-center gap-4 backdrop-blur-md px-4 py-2 rounded-full pointer-events-auto shadow-2xl border", viewMode === 'map' ? "bg-black/5 border-black/10" : "bg-white/5 border-white/10")}>
           {isLoading ? (
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-              <span className="text-xs font-medium text-white/70">Syncing Graph Data...</span>
+              <span className={cn("text-xs font-medium", viewMode === 'map' ? "text-black/70" : "text-white/70")}>Syncing Graph Data...</span>
             </div>
           ) : error ? (
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-xs font-medium text-red-400">{error}</span>
+              <span className="text-xs font-medium text-red-500">{error}</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-xs font-medium text-white/70">Graph Engine Online</span>
+              <span className={cn("text-xs font-medium", viewMode === 'map' ? "text-black/80 font-bold" : "text-white/70")}>Graph Engine Online</span>
             </div>
           )}
         </div>

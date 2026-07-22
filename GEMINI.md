@@ -21,15 +21,15 @@ The system must:
 
 ## 1. System Architecture
 
-**Frontend (Next.js + React + Framer Motion + WebGL)**
+**Frontend (Next.js + React + Framer Motion + React Flow)**
 ↓ *WebSockets / REST API (FastAPI Payload)*
 **API Gateway & Orchestration Layer (FastAPI)**
 ↓ *Event Bus (Redis Pub/Sub / Kafka)*
 **Core Services:**
 - Graph Engine (In-memory dicts/NetworkX + DB Sync)
 - Simulation Engine (Discrete Event Simulation)
-- Causal Reasoner (DoWhy / CausalAI)
-- Optimization Engine (OR-Tools)
+- Causal Reasoner (GNN-style Message Passing / PageRank)
+- Optimization Engine (Tabular Q-Learning & XGBoost)
 - Decision Comparator
 ↓
 **Database & Caching Layer:**
@@ -46,8 +46,7 @@ The system must:
 - **TypeScript** (Strict mode)
 - **TailwindCSS** (Utility-first styling)
 - **Framer Motion** (Micro-interactions and fluid layout transitions)
-- **Deck.gl / React Force Graph** (WebGL-accelerated rendering for 10k+ node macro views)
-- **React Flow** (For detailed, zoomed-in local subgraph editing)
+- **React Flow & Dagre** (For rendering, node-based interactive editing, and auto-layout)
 - **Zustand** (Rapid client-side state management for live simulations)
 - **shadcn/ui** (Accessible, customizable component baseline)
 - **WebSockets** (Real-time telemetry and metrics streaming)
@@ -62,9 +61,9 @@ The system must:
 - **PostgreSQL** (Relational data, settings, history)
 - **Redis** (Message brokering and low-latency cache)
 - **Celery** (Distributed task queue for long-running simulations)
-- **NetworkX / PyTorch Geometric** (In-memory graph math and embeddings)
-- **DoWhy / EconML** (Causal inference libraries)
-- **Google OR-Tools** (Combinatorial optimization)
+- **NetworkX** (In-memory graph math and PageRank centrality)
+- **XGBoost & SHAP** (For delay routing prediction and explainability)
+- **Q-Matrix / Tabular RL** (For real-time rebalancing decisions)
 - **Docker & Docker Compose** (Containerization)
 
 ---
@@ -94,17 +93,15 @@ The system must:
 - `WS /simulation/{id}/stream`
 
 ### 3.3 Causal Reasoning Engine
-- Root Cause Analysis (Backtracing anomalies)
-- Impact Chain Propagation (Forward tracing)
-- Compute Counterfactuals and Confidence Scores
-- Structural Causal Modeling (SCM)
-- Pearlian `do-calculus` intervention simulations
+- Structural blast radius calculation using PageRank centrality
+- Multi-hop cascading failure wave simulation (GNN-style Message Passing)
+- Structural vulnerability risk scoring
 
 ### 3.4 Optimization Engine
-- Capacitated Vehicle Routing Problem (CVRP) solving
-- Inventory Rebalancing & Safety Stock Optimization
-- Cost Abatement Minimization
-- Built with Google OR-Tools
+- Real-time inventory rebalancing via Tabular Q-Learning (Q-Matrix)
+- Congestion rerouting using localized state-action policies
+- Route delay prediction using XGBoost Regressor
+- Explainability layer using SHAP values
 
 **Endpoint:**
 - `POST /optimize/scenario`
@@ -119,7 +116,7 @@ The system must:
 
 ## 4. Frontend Modules
 
-- **Macro/Micro Graph Canvas:** WebGL for full network view, React Flow for zoomed-in subset editing.
+- **Graph Canvas:** React Flow with custom interactive nodes and Framer Motion animated edges.
 - **HUD Metrics Dashboard:** Floating glassmorphism panels for live KPIs.
 - **Simulation Control Panel:** Play/Pause/Rewind timeline, disruption toggles.
 - **Explainability Drawer:** Steps through the "why" of an AI recommendation.
@@ -132,7 +129,7 @@ The system must:
 ## 5. Performance Requirements
 
 - **Scale:** Support continuous rendering and state tracking of 10,000+ nodes and 50,000+ edges.
-- **Rendering:** Maintain 60fps on the frontend using WebGL offloading.
+- **Rendering:** Maintain interactive frame rates on the frontend using React Flow and optimized DOM element updates.
 - **Backend Latency:** < 50ms API response time for non-simulation endpoints.
 - **Sim Compute:** Utilize Redis caching and in-memory dicts/NetworkX to bypass DB I/O during active simulation ticks.
 
@@ -225,16 +222,16 @@ frontend/
 ## 11. AI & Machine Learning Capabilities
 
 - **Anomaly Detection:** Isolation Forests to identify unusual node behavior.
-- **Delay Forecasting:** LSTM networks modeling historical transit times.
-- **Risk Scoring:** Graph Neural Networks (GNN) assessing vulnerability based on network topology.
-- **Causal Intervention:** `do-calculus` evaluating root causes.
+- **Delay Forecasting:** XGBoost Regressor modeling historical transit times, explained via SHAP.
+- **Risk Scoring:** NetworkX PageRank centrality assessing vulnerability based on network topology.
+- **Real-Time Optimization:** Tabular Q-Learning evaluating localized rebalancing and rerouting decisions.
 
 ---
 
 ## 12. Deliverables
 
 1.  Production-ready FastAPI Backend.
-2.  Next.js + WebGL Frontend Implementation.
+2.  Next.js + React Flow Frontend Implementation.
 3.  Dockerized Multi-Container Setup (App, DBs, Cache, Workers).
 4.  Seed Dataset of 10,000 realistic supply chain nodes (auto-generated).
 5.  Interactive Demo Scenario (e.g., "Suez Canal Blockage").
