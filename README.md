@@ -264,7 +264,8 @@ npm run lint
 ## 📄 Other Contributors
 
 Shrankhala Singh (https://github.com/shrankhalalala)
-Nishtha Jain
+<br>
+Nishtha Jain 
 
 
 A Causally-Aware Supply Chain Digital Twin Platform.
