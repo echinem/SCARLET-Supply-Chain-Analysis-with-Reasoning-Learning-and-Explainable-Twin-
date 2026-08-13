@@ -261,7 +261,11 @@ npm run lint
 
 ---
 
-## 📄 License & Attribution
+## 📄 Other Contributors
 
-Developed as a Causally-Aware Supply Chain Digital Twin Platform.
+Shrankhala Singh (https://github.com/shrankhalalala)
+Nishtha Jain
+
+
+A Causally-Aware Supply Chain Digital Twin Platform.
 Repository: [github.com/shrankhalalala/digital_twin](https://github.com/shrankhalalala/digital_twin.git)
