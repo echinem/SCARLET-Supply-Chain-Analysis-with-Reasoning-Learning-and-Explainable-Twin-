@@ -1,5 +1,5 @@
 # SCARLET
-## <b>S</b>upply <b>C</b>hain <b>A</b>nalysis with <b>R</b>easoning <b>L</b>earning and <b>E</b>xplainable <b>T</b>win
+## Supply Chain Analysis with Reasoning, Learning and Explainable Twin
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.1+-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
