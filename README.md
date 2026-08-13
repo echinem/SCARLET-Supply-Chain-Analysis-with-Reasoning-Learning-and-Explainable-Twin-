@@ -159,7 +159,7 @@ Make sure you have [Docker](https://www.docker.com/) and Docker Compose installe
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/shrankhalalala/digital_twin.git
+   git clone https://github.com/echinem/SCARLET-Supply-Chain-Analysis-with-Reasoning-Learning-and-Explainable-Twin-.git
    cd digital_twin
    ```
 
@@ -268,4 +268,4 @@ Nishtha Jain
 
 
 A Causally-Aware Supply Chain Digital Twin Platform.
-Repository: [github.com/shrankhalalala/digital_twin](https://github.com/shrankhalalala/digital_twin.git)
+Repository: [SCARLET](https://github.com/echinem/SCARLET-Supply-Chain-Analysis-with-Reasoning-Learning-and-Explainable-Twin-.git)
