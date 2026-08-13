@@ -160,7 +160,7 @@ Make sure you have [Docker](https://www.docker.com/) and Docker Compose installe
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/echinem/SCARLET-Supply-Chain-Analysis-with-Reasoning-Learning-and-Explainable-Twin-.git
-   cd digital_twin
+   cd SCARLET-Supply-Chain-Analysis-with-Reasoning-Learning-and-Explainable-Twin-
    ```
 
 2. **Launch all services using Docker Compose**:
