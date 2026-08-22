@@ -21,10 +21,10 @@ A **Supply Chain Digital Twin Platform** designed to model complex multi-echelon
 ```mermaid
 flowchart TD
     subgraph Frontend["Frontend Layer (Next.js 14 + React Flow + Leaflet + Zustand)"]
-        UI[Interactive HUD & Dashboard]
-        GraphCanvas[React Flow Graph Canvas + Dagre Layout]
-        MapCanvas[Leaflet Geospatial Map + OSRM Routes]
-        Store[Zustand Store - graphStore.ts]
+        UI["Interactive HUD & Dashboard"]
+        GraphCanvas["React Flow Graph Canvas + Dagre Layout"]
+        MapCanvas["Leaflet Geospatial Map + OSRM Routes"]
+        Store["Zustand Store - graphStore.ts"]
         UI --> GraphCanvas
         UI --> MapCanvas
         GraphCanvas <--> Store
@@ -32,25 +32,25 @@ flowchart TD
     end
 
     subgraph Gateway["API Gateway (FastAPI)"]
-        REST[REST API Endpoints (/api/*)]
+        REST["REST API Endpoints (/api/*)"]
     end
 
     subgraph CoreEngines["Core Intelligence Engines"]
-        GraphEngine[Graph Engine - NetworkX & Neo4j Driver]
-        SimEngine[Discrete Event Simulation Engine]
-        CausalEngine[Causal Reasoning - PageRank Message Passing]
-        OptEngine[Q-Learning Rebalancer & XGBoost Rerouter + SHAP]
+        GraphEngine["Graph Engine - NetworkX & Neo4j Driver"]
+        SimEngine["Discrete Event Simulation Engine"]
+        CausalEngine["Causal Reasoning - PageRank Message Passing"]
+        OptEngine["Q-Learning Rebalancer & XGBoost Rerouter + SHAP"]
     end
 
     subgraph StateAndCache["In-Memory State & Cache"]
-        Redis[(Redis 7 - State & High-Frequency Telemetry)]
+        Redis[("Redis 7 - State & High-Frequency Telemetry")]
     end
 
     subgraph Storage["Graph Persistence Layer"]
-        Neo4j[(Neo4j 5 Graph Database)]
+        Neo4j[("Neo4j 5 Graph Database")]
     end
 
-    Store <-->|HTTP REST / Polling| REST
+    Store <-->|"HTTP REST / Polling"| REST
     REST --> GraphEngine
     REST --> SimEngine
     REST --> CausalEngine
