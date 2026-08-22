@@ -1,15 +1,18 @@
 # SCARLET
 ## Supply Chain Analysis with Reasoning, Learning and Explainable Twin
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.1+-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![React Flow](https://img.shields.io/badge/React%20Flow-11.10+-FF4081?style=flat-square)](https://reactflow.dev/)
-[![Neo4j](https://img.shields.io/badge/Neo4j-5.17+-008CC1?style=flat-square&logo=neo4j)](https://neo4j.com/)
+[![Leaflet](https://img.shields.io/badge/Leaflet-1.9+-199900?style=flat-square&logo=leaflet)](https://leafletjs.com/)
+[![Neo4j](https://img.shields.io/badge/Neo4j-5.20+-008CC1?style=flat-square&logo=neo4j)](https://neo4j.com/)
 [![Redis](https://img.shields.io/badge/Redis-7.2+-DC382D?style=flat-square&logo=redis)](https://redis.io/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python)](https://python.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-2.0+-EB5424?style=flat-square)](https://xgboost.readthedocs.io/)
+[![SHAP](https://img.shields.io/badge/SHAP-0.44+-4B8BBE?style=flat-square)](https://shap.readthedocs.io/)
 
-A **Supply Chain Digital Twin Platform** designed to model complex multi-echelon supply networks as dynamic interactive graphs, simulate probabilistic disruption cascades, compute causal blast radii using structural graph algorithms, optimize inventory and routing via reinforcement learning & gradient boosting, and explain AI-driven interventions in real time.
+A **Supply Chain Digital Twin Platform** designed to model complex multi-echelon supply networks as dynamic interactive graphs, simulate multi-type disruption cascades, compute causal blast radii using graph centrality algorithms, optimize inventory and routing via online reinforcement learning (Q-Learning) and gradient boosting (XGBoost), and explain AI-driven interventions in real time with SHAP feature attributions.
 
 ---
 
@@ -17,11 +20,11 @@ A **Supply Chain Digital Twin Platform** designed to model complex multi-echelon
 
 ```mermaid
 flowchart TD
-    subgraph Frontend["Frontend Layer (Next.js 14 + React Flow + Zustand)"]
-        UI[Interactive UI & Dashboard]
-        GraphCanvas[React Flow Graph Canvas]
-        MapCanvas[GeoJSON Map View]
-        Store[Zustand Graph & Simulation Store]
+    subgraph Frontend["Frontend Layer (Next.js 14 + React Flow + Leaflet + Zustand)"]
+        UI[Interactive HUD & Dashboard]
+        GraphCanvas[React Flow Graph Canvas + Dagre Layout]
+        MapCanvas[Leaflet Geospatial Map + OSRM Routes]
+        Store[Zustand Store - graphStore.ts]
         UI --> GraphCanvas
         UI --> MapCanvas
         GraphCanvas <--> Store
@@ -29,36 +32,33 @@ flowchart TD
     end
 
     subgraph Gateway["API Gateway (FastAPI)"]
-        REST[REST API Endpoints]
-        WS[WebSocket Telemetry Stream]
+        REST[REST API Endpoints (/api/*)]
     end
 
-    subgraph CoreEngine["Core Intelligence Engines"]
-        GraphEngine[Graph Engine - NetworkX & Neo4j]
+    subgraph CoreEngines["Core Intelligence Engines"]
+        GraphEngine[Graph Engine - NetworkX & Neo4j Driver]
         SimEngine[Discrete Event Simulation Engine]
-        CausalEngine[Causal Reasoning & Risk Centrality]
-        OptEngine[Q-Learning Rebalancer & XGBoost Rerouter]
+        CausalEngine[Causal Reasoning - PageRank Message Passing]
+        OptEngine[Q-Learning Rebalancer & XGBoost Rerouter + SHAP]
     end
 
-    subgraph AsyncBus["Event Bus & Workers"]
-        Redis[Redis Pub/Sub & In-Memory State]
-        Celery[Celery Task Queue]
+    subgraph StateAndCache["In-Memory State & Cache"]
+        Redis[(Redis 7 - State & High-Frequency Telemetry)]
     end
 
-    subgraph Storage["Persistence Layer"]
-        Neo4j[(Neo4j Graph Database)]
-        Postgres[(PostgreSQL Relational DB)]
+    subgraph Storage["Graph Persistence Layer"]
+        Neo4j[(Neo4j 5 Graph Database)]
     end
 
-    Store <-->|HTTP REST / WS| REST
+    Store <-->|HTTP REST / Polling| REST
     REST --> GraphEngine
     REST --> SimEngine
     REST --> CausalEngine
     REST --> OptEngine
-    SimEngine <--> Celery
-    Celery <--> Redis
+    SimEngine <--> Redis
+    SimEngine <--> GraphEngine
     GraphEngine <--> Neo4j
-    REST <--> Postgres
+    OptEngine --> SimEngine
 ```
 
 ---
@@ -66,53 +66,75 @@ flowchart TD
 ## ✨ Key Capabilities & Features
 
 ### 1. 🌐 Dynamic Multi-Echelon Graph Modeling
-- **Nodes**: Suppliers, Factories, Ports, Warehouses, Transport Hubs, and Customer Demands.
-- **Node Parameters**: `capacity`, `inventory_level`, `processing_time`, `baseline_risk_score`, `delay_probability`, `geocoordinates`.
-- **Edge Attributes**: `transit_time`, `cost`, `congestion_index`, `disruption_probability`, `current_flow`.
-- High-performance graph traversal powered by **NetworkX** and **Neo4j Cypher** batch operations.
+- **Echelons & Node Roles**: `Supplier`, `Factory`, `Warehouse`, `Port`, `TransportHub`, and `Customer`.
+- **Node Attributes**: `capacity`, `inventory`, `risk_score`, `processing_time`, `lat`, `lng`.
+- **Edge Attributes**: `transit_time`, `cost`, `congestion`, `disruption_probability`.
+- **Persistence & Traversal**: **Neo4j** graph database backend with high-performance `UNWIND` batch transactions for instant graph ingestion, plus in-memory **NetworkX** graph snapshot execution.
 
-### 2. ⚡ Discrete Event Simulation Engine
-- Time-stepped simulation ticks modeling live demand, order processing, and inventory drawdown.
-- Dynamic shock injection (e.g., *Port Shutdown*, *Suez Canal Blockage*, *Factory Outage*).
-- Asynchronous execution offloaded to **Celery distributed workers** with low-latency **Redis caching**.
+### 2. ⚡ Discrete Event Simulation & Multi-Type Shock Injection
+- Time-stepped discrete simulation ticks modeling live demand drawdowns, factory replenishment, and multi-hop failure propagation.
+- **4 Structured Disruption Types**:
+  - `node_failures`: Collapses node inventory to 0, spikes risk, and initiates PageRank-based causal wave shock propagation.
+  - `edge_disruptions`: Increases route congestion and compounds downstream receiving risk.
+  - `demand_spikes`: Multiplies downstream consumption drawdowns, stressing upstream supply tiers.
+  - `capacity_reductions`: Shrinks maximum storage capacity and forces discard/spoilage of overflow inventory.
+- Real-time in-memory state streamed to **Redis** and synchronized to the UI via high-frequency telemetry polling.
 
-### 3. 🎯 Structural Causal Reasoning & Risk Scoring
-- Network topology risk analysis powered by **PageRank centrality scoring**.
-- Dynamic blast radius calculation tracing upstream/downstream multi-hop disruption propagation.
-- Real-time vulnerability indexing for critical nodes and edges.
+### 3. 🎯 Structural Causal Reasoning & Blast Radius Tracing
+- **Graph Centrality Propagation**: Computes failure waves across the network using weighted **PageRank centrality** to identify critical structural bottleneck hubs that amplify disruption shocks.
+- **Lineage Tracing & Visual Blast Radius**:
+  - Interactive BFS graph traversal identifying all upstream supplier dependencies (highlighted in Amber).
+  - Downstream blast radius tracing showing all dependent nodes structurally exposed to failure (highlighted in Cyan).
+  - Identification of critical risk-contributing nodes exceeding severity thresholds.
 
-### 4. 🤖 ML Optimization & Routing Engine
-- **Tabular Q-Learning Rebalancing**: Reinforcement learning policy for real-time warehouse inventory reallocation.
-- **XGBoost Rerouting**: Transit delay prediction trained on historical network metrics.
-- **SHAP Explainability**: Dynamic feature attribution explaining *why* the AI recommended specific rerouting decisions.
+### 4. 🤖 AI Optimization: Q-Learning Rebalancer & XGBoost Rerouter
+- **Tabular Q-Learning Inventory Rebalancing**:
+  - Discretizes continuous node metrics into a 9-state tuple $(inv\_state, risk\_state)$ representing operational inventory bands and risk levels.
+  - 3 Dynamic Action Policies: `STABLE` (nominal state), `REBALANCE` (transfers buffer stock from surplus warehouses to stockout-threatened nodes), and `REROUTE` (alleviates congested inbound links).
+  - Dynamic Bellman update reward function balancing inventory health, stockout catastrophe penalties, and risk mitigation, persisted to disk (`q_table.json`).
+- **XGBoost Delay Prediction**:
+  - Gradient-boosted regressor predicting transit delay from route distance, duration, congestion, demand, and graph centrality metrics.
+- **SHAP Feature Explainability**:
+  - Dynamic tree feature attribution (`shap.TreeExplainer`) explaining *why* the AI predicted delays or recommended specific rerouting interventions.
+  - Multi-route disruption simulation (`POST /api/routing/simulate`) evaluating candidate paths under traffic spikes and demand surges.
 
-### 5. 🖥️ Hardware-Accelerated Dual Visual Canvas
-- **React Flow Canvas**: Custom node components, interactive drag/zoom, Dagre layout engine, and animated Framer Motion edges.
-- **Map Canvas**: Geographic projection visualization for global supply chain routes.
-- **HUD Glassmorphism Controls**: Floating telemetry panel, simulation control bar (Play/Pause/Reset), disruption injector, and SHAP explainability drawer.
+### 5. 🖥️ Interactive Dual-Canvas UI (React Flow & Leaflet)
+- **React Flow Canvas**:
+  - Automated hierarchical graph layout powered by **Dagre**.
+  - Custom telemetry node pills displaying real-time Risk, Capacity, and Inventory levels.
+  - Animated bezier flow edges with directional markers that reflect link health and throughput.
+  - Dynamic dependency highlighting on selection (Upstream vs. Blast Radius).
+- **Geographic Map Canvas**:
+  - Interactive **Leaflet** map with real-world road network routing via **OSRM**.
+  - Multi-alternative route rendering with ML delay scoring and optimal route highlighting (Emerald).
+  - In-map disruption trigger panel (`Traffic Spike`, `Demand Surge`).
+- **HUD Glassmorphism Control Panels**:
+  - `SimulationPanel`: Multi-tab interface for simulation parameters (timesteps, tick delay), Manual vs. AI decision mode toggle, disruption shock injector, and live AI action log stream.
+  - `MetricsPanel`: Real-time floating telemetry displaying Global Inventory, Active Disruptions, and System-Weighted Risk Index.
+  - `ExplainabilityPanel`: Floating cursor-following and selection drawer displaying causal explanations, SHAP feature impact bars, and critical risk contributors.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 14 (App Router, Server Actions)
+- **Framework**: Next.js 14 (App Router, React 18)
 - **Language**: TypeScript (Strict Mode)
 - **State Management**: Zustand
-- **Visualization**: React Flow, Dagre, Lucide React
-- **Styling & Motion**: TailwindCSS, Framer Motion, Glassmorphism design system
+- **Visualizations**: React Flow 11, Leaflet / React-Leaflet, Dagre
+- **Styling & Motion**: TailwindCSS, Framer Motion, Lucide React
 
 ### Backend
-- **Framework**: Python 3.11+, FastAPI (Async/ASGI)
-- **Data Validation**: Pydantic v2
+- **Framework**: FastAPI (Async / ASGI)
+- **Language**: Python 3.11+
 - **Graph Processing**: NetworkX, Neo4j Python Async Driver
-- **Machine Learning**: XGBoost, SHAP, Scikit-learn
-- **Task Queue & Cache**: Celery, Redis
+- **Machine Learning & Explainability**: XGBoost, SHAP, Scikit-learn, NumPy, Pandas
+- **In-Memory State & Cache**: Redis 7
+- **Validation**: Pydantic v2 & Pydantic Settings
 
-### Infrastructure & Persistence
-- **Graph DB**: Neo4j 5
-- **Relational DB**: PostgreSQL 15 (SQLAlchemy 2.0 Async)
-- **Caching & Bus**: Redis 7
+### Infrastructure
+- **Graph Database**: Neo4j 5
+- **Cache & Bus**: Redis 7
 - **Containerization**: Docker & Docker Compose
 
 ---
@@ -123,31 +145,43 @@ flowchart TD
 .
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # FastAPI application entry point & lifespan startup
-│   │   ├── api/                 # API Route Handlers (Graph, Sim, Routing, Dev, Health)
-│   │   ├── core/                # Configuration, logging, settings
-│   │   ├── db/                  # Neo4j, PostgreSQL, and Redis client setup
-│   │   ├── models/              # Database ORM models
-│   │   ├── schemas/             # Pydantic request/response schemas
-│   │   ├── services/            # Core business logic & ML/Simulation services
-│   │   └── workers/             # Celery background workers
-│   ├── tests/                   # PyTest integration & unit test suite
-│   ├── Dockerfile               # Backend container configuration
-│   ├── docker-compose.yml       # Full stack container orchestration
-│   ├── requirements.txt         # Python dependencies
-│   └── routing_model.pkl        # Pre-trained XGBoost routing delay model
+│   │   ├── main.py                  # FastAPI application entry point & lifespan management
+│   │   ├── api/                     # REST API Route Handlers
+│   │   │   ├── graph.py             # Node & Edge CRUD, UNWIND batch import
+│   │   │   ├── simulation.py        # Discrete event simulation start, status, metrics
+│   │   │   ├── routing.py           # XGBoost delay prediction & route simulation
+│   │   │   ├── dev.py               # Development graph seed & wipe endpoints
+│   │   │   └── health.py            # Multi-DB health verification
+│   │   ├── core/                    # Application settings & logging configuration
+│   │   ├── db/                      # Neo4j, Redis, and PostgreSQL client connections
+│   │   ├── models/                  # Base ORM definitions
+│   │   ├── schemas/                 # Pydantic request/response validation models
+│   │   ├── services/                # Business logic, ML models, & simulation loop
+│   │   │   ├── graph_service.py     # Neo4j Cypher query execution
+│   │   │   ├── simulation_service.py# In-memory discrete-event simulation loop
+│   │   │   ├── ml_optimization_service.py # Tabular Q-Learning rebalancing agent
+│   │   │   ├── ml_routing_service.py# XGBoost delay model & SHAP explainer
+│   │   │   ├── ml_causal_service.py # PageRank structural causal propagation
+│   │   │   ├── snapshot_service.py  # Neo4j to NetworkX in-memory graph snapshot
+│   │   │   └── dev_service.py       # Realistic multi-echelon seed dataset
+│   │   └── workers/                 # Background task worker definitions
+│   ├── Dockerfile                   # Backend Docker container configuration
+│   ├── docker-compose.yml           # Full-stack container orchestration
+│   ├── requirements.txt             # Python dependencies
+│   ├── q_table.json                 # Pre-trained Q-Learning policy table
+│   └── routing_model.pkl            # Pre-trained XGBoost routing delay model
 ├── frontend/
 │   ├── src/
-│   │   ├── app/                 # Next.js 14 App Router layout & page views
+│   │   ├── app/                     # Next.js 14 App Router layout & home view
 │   │   ├── components/
-│   │   │   ├── dashboard/       # Simulation, Metrics, Routing, & Explainability panels
-│   │   │   └── graph/           # React Flow canvas & Geographic map canvas
-│   │   ├── lib/                 # Graph reasoning utilities & helpers
-│   │   └── store/               # Zustand global state store (`graphStore.ts`)
-│   ├── package.json
-│   └── tailwind.config.ts
-├── GEMINI.md                    # System architecture specification
-└── README.md                    # Project documentation
+│   │   │   ├── dashboard/           # SimulationPanel, MetricsPanel, ExplainabilityPanel, RoutingControlPanel
+│   │   │   └── graph/               # GraphCanvas (React Flow) & MapCanvas (Leaflet)
+│   │   ├── lib/                     # BFS graph reasoning & utility helpers
+│   │   └── store/                   # Zustand global state store (graphStore.ts)
+│   ├── package.json                 # Node dependencies & scripts
+│   ├── tailwind.config.ts           # Tailwind styling configuration
+│   └── tsconfig.json                # TypeScript configuration
+└── README.md                        # Project documentation
 ```
 
 ---
@@ -164,12 +198,12 @@ Make sure you have [Docker](https://www.docker.com/) and Docker Compose installe
    cd SCARLET-Supply-Chain-Analysis-with-Reasoning-Learning-and-Explainable-Twin-
    ```
 
-2. **Launch all services using Docker Compose**:
+2. **Launch backend & database services via Docker Compose**:
    ```bash
    cd backend
    docker-compose up --build -d
    ```
-   *This starts FastAPI, Redis, Neo4j, PostgreSQL, and the Celery simulation worker.*
+   *This initializes FastAPI, Neo4j, and Redis.*
 
 3. **Start the Frontend**:
    ```bash
@@ -189,13 +223,16 @@ Make sure you have [Docker](https://www.docker.com/) and Docker Compose installe
 cd backend
 
 # Create & activate a python virtual environment
-python3.11 -m venv venv
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On Linux/macOS:
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Start Redis & Neo4j (via Docker or local services)
+# Start Redis & Neo4j via Docker
 docker run -d --name twin-redis -p 6379:6379 redis:7-alpine
 docker run -d --name twin-neo4j -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j:5
 
@@ -214,18 +251,20 @@ npm install
 npm run dev
 ```
 
+Open `http://localhost:3000` in your browser. Click **"Seed Development Network"** to initialize the graph.
+
 ---
 
 ## 📡 API Endpoints Overview
 
-All API responses follow a standardized JSON response wrapper:
+All API responses follow a standardized JSON wrapper:
 
 ```json
 {
   "status": "success",
   "data": { ... },
   "meta": {
-    "timestamp": "2026-07-22T14:00:00Z"
+    "timestamp": "2026-08-22T12:00:00Z"
   },
   "error": null
 }
@@ -233,16 +272,24 @@ All API responses follow a standardized JSON response wrapper:
 
 ### Core API Endpoints
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/health` | `GET` | Verifies DB connectivity (Postgres, Neo4j, Redis) |
-| `/dev/seed` | `POST` | Seeds the graph database with realistic multi-echelon nodes & edges |
-| `/graph/subgraph` | `GET` | Fetches active graph layout nodes, edges, and capacities |
-| `/simulate/start` | `POST` | Initializes a discrete time-step simulation run |
-| `/simulate/inject-shock` | `POST` | Injects node/edge failures or disruptions into active simulation |
-| `/simulate/{id}/status` | `GET` | Retrieves real-time status and metric snapshots |
-| `/routing/predict-delay` | `POST` | Predicts route delay using XGBoost & returns SHAP feature explanations |
-| `/optimize/scenario` | `POST` | Runs Q-learning inventory rebalancing & capacity optimization |
+| Category | Method | Endpoint | Description |
+|---|---|---|---|
+| **Health** | `GET` | `/health` | Verifies DB connectivity (Neo4j, Redis, Postgres) |
+| **Development** | `POST` | `/api/dev/seed` | Seeds database with a pre-configured multi-echelon network |
+| **Development** | `DELETE` | `/api/dev/clear` | Wipes all graph nodes and relationships |
+| **Graph** | `GET` | `/api/nodes` | Retrieves all active nodes with properties |
+| **Graph** | `POST` | `/api/nodes` | Creates a new single node |
+| **Graph** | `GET` | `/api/nodes/{id}` | Retrieves a single node by its `node_id` |
+| **Graph** | `DELETE` | `/api/nodes/{id}` | Deletes a node and all connected edges |
+| **Graph** | `GET` | `/api/edges` | Retrieves all relationship edges |
+| **Graph** | `POST` | `/api/edges` | Creates a new relationship edge between existing nodes |
+| **Graph** | `DELETE` | `/api/edges/{id}` | Deletes a relationship edge by its `edge_id` |
+| **Graph** | `POST` | `/api/graph/import` | High-performance batch import using Neo4j `UNWIND` queries |
+| **Simulation** | `POST` | `/api/simulate` | Starts a discrete time-step simulation run (Manual / AI mode) |
+| **Simulation** | `GET` | `/api/simulation/{id}/status` | Retrieves real-time simulation status & aggregated metrics |
+| **Simulation** | `GET` | `/api/simulation/{id}/metrics` | Retrieves detailed timestep metrics, node stats, and AI action logs |
+| **Smart Routing** | `POST` | `/api/routing/predict-delay` | Predicts route delay with XGBoost and returns SHAP explanations |
+| **Smart Routing** | `POST` | `/api/routing/simulate` | Simulates route disruptions (`traffic_spike`, `demand_surge`) across alternatives |
 
 ---
 
@@ -262,12 +309,12 @@ npm run lint
 
 ---
 
-## 📄 Other Contributors
+## 👥 Contributors
 
-Shrankhala Singh (https://github.com/shrankhalalala)
-<br>
-Nishtha Jain 
+- **Shrankhala Singh** ([GitHub](https://github.com/shrankhalalala))
+- **Nishtha Jain**
 
+---
 
-A Causally-Aware Supply Chain Digital Twin Platform.
+**SCARLET** — *Supply Chain Analysis with Reasoning, Learning and Explainable Twin*  
 Repository: [SCARLET](https://github.com/echinem/SCARLET-Supply-Chain-Analysis-with-Reasoning-Learning-and-Explainable-Twin-.git)
