@@ -19,46 +19,42 @@ A **Supply Chain Digital Twin Platform** designed to model complex multi-echelon
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph Frontend["Frontend Layer (Next.js 14 + React Flow + Leaflet + Zustand)"]
-        UI["Interactive HUD & Dashboard"]
-        GraphCanvas["React Flow Graph Canvas + Dagre Layout"]
-        MapCanvas["Leaflet Geospatial Map + OSRM Routes"]
-        Store["Zustand Store - graphStore.ts"]
+flowchart TB
+    subgraph Frontend["Frontend Layer (Next.js 14 + Zustand)"]
+        UI["Interactive HUD & Control Panels"]
+        GraphCanvas["React Flow Graph Canvas"]
+        MapCanvas["Leaflet Geospatial Map (OSRM)"]
+        Store["Global Graph Store (Zustand)"]
+        
         UI --> GraphCanvas
         UI --> MapCanvas
-        GraphCanvas <--> Store
-        MapCanvas <--> Store
+        GraphCanvas --> Store
+        MapCanvas --> Store
     end
 
-    subgraph Gateway["API Gateway (FastAPI)"]
-        REST["REST API Endpoints (/api/*)"]
-    end
-
-    subgraph CoreEngines["Core Intelligence Engines"]
-        GraphEngine["Graph Engine - NetworkX & Neo4j Driver"]
+    subgraph Backend["API & Intelligence Layer (FastAPI)"]
+        API["FastAPI REST Gateway (/api/*)"]
+        GraphEngine["NetworkX Graph Processor"]
         SimEngine["Discrete Event Simulation Engine"]
-        CausalEngine["Causal Reasoning - PageRank Message Passing"]
-        OptEngine["Q-Learning Rebalancer & XGBoost Rerouter + SHAP"]
+        CausalEngine["PageRank Structural Causal Model"]
+        OptEngine["Q-Learning Rebalancer & XGBoost / SHAP"]
+
+        API --> GraphEngine
+        API --> SimEngine
+        API --> CausalEngine
+        API --> OptEngine
+        OptEngine --> SimEngine
+        CausalEngine --> SimEngine
     end
 
-    subgraph StateAndCache["In-Memory State & Cache"]
-        Redis[("Redis 7 - State & High-Frequency Telemetry")]
+    subgraph Storage["Data & State Persistence"]
+        Redis[("Redis 7 - State & High-Frequency Cache")]
+        Neo4j[("Neo4j 5 - Multi-Echelon Graph Database")]
     end
 
-    subgraph Storage["Graph Persistence Layer"]
-        Neo4j[("Neo4j 5 Graph Database")]
-    end
-
-    Store <-->|"HTTP REST / Polling"| REST
-    REST --> GraphEngine
-    REST --> SimEngine
-    REST --> CausalEngine
-    REST --> OptEngine
-    SimEngine <--> Redis
-    SimEngine <--> GraphEngine
-    GraphEngine <--> Neo4j
-    OptEngine --> SimEngine
+    Store -->|"REST Polling & Mutators"| API
+    SimEngine --> Redis
+    GraphEngine --> Neo4j
 ```
 
 ---
