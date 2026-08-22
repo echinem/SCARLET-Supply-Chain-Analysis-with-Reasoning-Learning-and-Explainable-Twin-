@@ -9,7 +9,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python)](https://python.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-An enterprise-grade, hardware-accelerated **Supply Chain Digital Twin Platform** designed to model complex multi-echelon supply networks as dynamic interactive graphs, simulate probabilistic disruption cascades, compute causal blast radii using structural graph algorithms, optimize inventory and routing via reinforcement learning & gradient boosting, and explain AI-driven interventions in real time.
+A **Supply Chain Digital Twin Platform** designed to model complex multi-echelon supply networks as dynamic interactive graphs, simulate probabilistic disruption cascades, compute causal blast radii using structural graph algorithms, optimize inventory and routing via reinforcement learning & gradient boosting, and explain AI-driven interventions in real time.
 
 ---
 
