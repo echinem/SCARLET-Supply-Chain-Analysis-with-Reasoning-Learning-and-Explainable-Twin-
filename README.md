@@ -289,22 +289,6 @@ All API responses follow a standardized JSON wrapper:
 
 ---
 
-## 🧪 Testing & QA
-
-Run backend unit tests:
-```bash
-cd backend
-pytest tests/
-```
-
-Run frontend linting:
-```bash
-cd frontend
-npm run lint
-```
-
----
-
 ## 👥 Contributors
 
 - **Shrankhala Singh** ([GitHub](https://github.com/shrankhalalala))
