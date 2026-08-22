@@ -1,0 +1,4 @@
+from unittest.mock import AsyncMock
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
