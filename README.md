@@ -289,7 +289,7 @@ All API responses follow a standardized JSON wrapper:
 
 ---
 
-## 👥 Contributors
+## 👥 Other Contributors
 
 - **Shrankhala Singh** ([GitHub](https://github.com/shrankhalalala))
 - **Nishtha Jain**
