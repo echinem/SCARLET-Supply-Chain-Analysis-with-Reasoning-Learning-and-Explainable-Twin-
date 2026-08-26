@@ -7,7 +7,7 @@ def predict_delay_probability(G: nx.DiGraph, disrupted_node_id: str, severity: f
     Uses Graph Theory (PageRank) to determine
     how failures propagate through the entire network topology.
     """
-    logger.info(f"GNN Causal Engine analyzing structural blast radius for {disrupted_node_id}")
+    logger.info(f"Causal Engine analyzing structural blast radius for {disrupted_node_id}")
     
     predictions = {}
     if disrupted_node_id not in G:
