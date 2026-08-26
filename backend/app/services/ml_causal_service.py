@@ -4,8 +4,7 @@ from app.core.logging import logger
 
 def predict_delay_probability(G: nx.DiGraph, disrupted_node_id: str, severity: float) -> Dict[str, float]:
     """
-    Implements a Structural Causal Model using GNN-style Message Passing.
-    Instead of simple heuristics, it uses Graph Theory (PageRank) to determine
+    Uses Graph Theory (PageRank) to determine
     how failures propagate through the entire network topology.
     """
     logger.info(f"GNN Causal Engine analyzing structural blast radius for {disrupted_node_id}")
