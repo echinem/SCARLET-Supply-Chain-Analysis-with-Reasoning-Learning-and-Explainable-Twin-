@@ -135,53 +135,6 @@ flowchart TB
 
 ---
 
-## 📁 Repository Structure
-
-```text
-.
-├── backend/
-│   ├── app/
-│   │   ├── main.py                  # FastAPI application entry point & lifespan management
-│   │   ├── api/                     # REST API Route Handlers
-│   │   │   ├── graph.py             # Node & Edge CRUD, UNWIND batch import
-│   │   │   ├── simulation.py        # Discrete event simulation start, status, metrics
-│   │   │   ├── routing.py           # XGBoost delay prediction & route simulation
-│   │   │   ├── dev.py               # Development graph seed & wipe endpoints
-│   │   │   └── health.py            # Multi-DB health verification
-│   │   ├── core/                    # Application settings & logging configuration
-│   │   ├── db/                      # Neo4j, Redis, and PostgreSQL client connections
-│   │   ├── models/                  # Base ORM definitions
-│   │   ├── schemas/                 # Pydantic request/response validation models
-│   │   ├── services/                # Business logic, ML models, & simulation loop
-│   │   │   ├── graph_service.py     # Neo4j Cypher query execution
-│   │   │   ├── simulation_service.py# In-memory discrete-event simulation loop
-│   │   │   ├── ml_optimization_service.py # Tabular Q-Learning rebalancing agent
-│   │   │   ├── ml_routing_service.py# XGBoost delay model & SHAP explainer
-│   │   │   ├── ml_causal_service.py # PageRank structural causal propagation
-│   │   │   ├── snapshot_service.py  # Neo4j to NetworkX in-memory graph snapshot
-│   │   │   └── dev_service.py       # Realistic multi-echelon seed dataset
-│   │   └── workers/                 # Background task worker definitions
-│   ├── Dockerfile                   # Backend Docker container configuration
-│   ├── docker-compose.yml           # Full-stack container orchestration
-│   ├── requirements.txt             # Python dependencies
-│   ├── q_table.json                 # Pre-trained Q-Learning policy table
-│   └── routing_model.pkl            # Pre-trained XGBoost routing delay model
-├── frontend/
-│   ├── src/
-│   │   ├── app/                     # Next.js 14 App Router layout & home view
-│   │   ├── components/
-│   │   │   ├── dashboard/           # SimulationPanel, MetricsPanel, ExplainabilityPanel, RoutingControlPanel
-│   │   │   └── graph/               # GraphCanvas (React Flow) & MapCanvas (Leaflet)
-│   │   ├── lib/                     # BFS graph reasoning & utility helpers
-│   │   └── store/                   # Zustand global state store (graphStore.ts)
-│   ├── package.json                 # Node dependencies & scripts
-│   ├── tailwind.config.ts           # Tailwind styling configuration
-│   └── tsconfig.json                # TypeScript configuration
-└── README.md                        # Project documentation
-```
-
----
-
 ## 🚀 Quickstart & Setup Guide
 
 ### Option 1: Full-Stack Docker Setup (Recommended)
